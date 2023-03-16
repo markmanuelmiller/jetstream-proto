@@ -1,0 +1,33 @@
+version: "3.5"
+services:
+  nats:
+    image: nats:alpine3.17
+    ports:
+      - "8222:8222"
+    command: "--cluster_name NATS --cluster nats://0.0.0.0:6222 --http_port 8222 --jetstream"
+    networks: [ "nats" ]
+  nats-1:
+    image: nats:alpine3.17
+    command: "--cluster_name NATS --cluster nats://0.0.0.0:6222 --routes=nats://ruser:T0pS3cr3t@nats:6222 --jetstream"
+    networks: [ "nats" ]
+    depends_on: [ "nats" ]
+  nats-2:
+    image: nats:alpine3.17
+    command: "--cluster_name NATS --cluster nats://0.0.0.0:6222 --routes=nats://ruser:T0pS3cr3t@nats:6222 --jetstream"
+    networks: [ "nats" ]
+    depends_on: [ "nats" ]
+  ripple:
+    build: ./ripple
+    ports:
+      - 3000:3000
+    depends_on:
+      - nats
+    networks:
+      - nats
+    volumes:
+      - ./ripple/src:/home/app/src
+      - /home/app/node_modules
+
+networks:
+  nats:
+    name: nats
